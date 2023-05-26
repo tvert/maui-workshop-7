@@ -26,9 +26,11 @@ public static class MauiProgram
 
             // Register ViewModel(s)
             builder.Services.AddSingleton<MonkeysViewModel>();
+            builder.Services.AddTransient<MonkeyDetailsViewModel>();
 
             // Register View(s) (aka Page(s))
             builder.Services.AddSingleton<MainPage>();
+            builder.Services.AddTransient<DetailsPage>();
         }
 
         return builder.Build();
