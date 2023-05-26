@@ -8,10 +8,11 @@
     <ScrollView>
         <VerticalStackLayout>
             <Grid ColumnDefinitions="*,Auto,*"
-                  RowDefinitions="160, Auto"
-                  >
+                  RowDefinitions="80, Auto"
+                  BackgroundColor="Transparent">
                 <BoxView BackgroundColor="{StaticResource Primary}"
                          Grid.ColumnSpan="3"
+                         Grid.Row="0"
                          HeightRequest="160"
                          HorizontalOptions="Fill"/>
                 <Frame Grid.RowSpan="2"
@@ -22,8 +23,18 @@
                        HorizontalOptions="Center"
                        IsClippedToBounds="True"
                        Padding="5"
-                       Margin="0,80,0,0"
-                       BackgroundColor="CadetBlue">
+                       Margin="0,40,0,0"
+                       BackgroundColor="NavajoWhite"/>
+                <Frame Grid.RowSpan="2"
+                       Grid.Column="1"
+                       HeightRequest="140"
+                       WidthRequest="140"
+                       CornerRadius="80"
+                       HorizontalOptions="Center"
+                       IsClippedToBounds="True"
+                       Padding="5"
+                       Margin="0,40,0,0"
+                       BackgroundColor="Transparent">
                     <Image Aspect="AspectFill"
                            HeightRequest="160"
                            WidthRequest="160"
@@ -32,10 +43,9 @@
                            Source="{Binding Monkey.Image}"/>
                 </Frame>
             </Grid>
-            <VerticalStackLayout>
+            <VerticalStackLayout Spacing="10" Padding="10">
                 <Label Text="{Binding Monkey.Details}"
-                       Style="{StaticResource MediumLabel}"
-                       BackgroundColor="Aqua"/>
+                       Style="{StaticResource MediumLabel}"/>
                 <Label Text="{Binding Monkey.Location, StringFormat='Location: {0}'}"
                        Style="{StaticResource SmallLabel}"/>
                 <Label Text="{Binding Monkey.Population, StringFormat='Population: {0}'}"
