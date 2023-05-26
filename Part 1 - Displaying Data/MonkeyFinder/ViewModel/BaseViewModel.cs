@@ -1,13 +1,5 @@
 ﻿namespace MonkeyFinder.ViewModel;
 
-public partial class BaseViewModel :ObservableObject
+public class BaseViewModel
 {
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsNotBusy))]
-    private bool _isBusy;
-
-    [ObservableProperty]
-    private string _title;
-
-    public bool IsNotBusy => !IsBusy;
 }
