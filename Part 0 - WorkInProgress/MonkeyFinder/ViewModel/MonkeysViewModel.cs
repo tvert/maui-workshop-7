@@ -20,6 +20,9 @@ public partial class MonkeysViewModel : BaseViewModel
 
     public ObservableCollection<Monkey> Monkeys { get; } = new();
 
+    [ObservableProperty]
+    private bool _isRefreshing;
+
     //[RelayCommand(CanExecute = nameof(CanGetClosestMonkey))]
     [RelayCommand]
     async Task GetClosestMonkeyAsync()
@@ -79,6 +82,9 @@ public partial class MonkeysViewModel : BaseViewModel
 
         try
         {
+            IsBusy = true;
+            
+            // Check Internet Connectivity
             if (_connectivity.NetworkAccess != NetworkAccess.Internet)
             {
                 await Shell.Current.DisplayAlert("Internet Issue",
@@ -86,7 +92,6 @@ public partial class MonkeysViewModel : BaseViewModel
                 return;
             }
 
-            IsBusy = true;
             var monkeysFromSvc = await _monkeyService.GetMonkeysAsync();
 
             if (Monkeys.Any())
@@ -99,6 +104,29 @@ public partial class MonkeysViewModel : BaseViewModel
         {
             Debug.WriteLine(ex);
             await Shell.Current.DisplayAlert("Error!", $"Unable to get monkeys: '{ex.Message}'", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+            IsRefreshing = false;
+        }
+    }
+
+    [RelayCommand]
+    async Task ClearMonkeysListAsync()
+    {
+        if (IsBusy) return;
+
+        try
+        {
+            IsBusy = true;
+            if (Monkeys.Any())
+                Monkeys.Clear();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await Shell.Current.DisplayAlert("Error!", $"Unable to clear the list of monkeys: '{ex.Message}'", "OK");
         }
         finally
         {
