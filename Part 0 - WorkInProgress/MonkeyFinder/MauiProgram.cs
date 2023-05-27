@@ -23,6 +23,10 @@ public static class MauiProgram
         {
             // Register Service(s)
             builder.Services.AddSingleton<MonkeyService>();
+            builder.Services.AddSingleton<IConnectivity>(Connectivity.Current);
+            builder.Services.AddSingleton<IGeolocation>(Geolocation.Default);
+            builder.Services.AddSingleton<IMap>(Map.Default);
+
 
             // Register ViewModel(s)
             builder.Services.AddSingleton<MonkeysViewModel>();
