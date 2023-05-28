@@ -25,11 +25,10 @@ public partial class MonkeysViewModel : BaseViewModel
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
-    [NotifyCanExecuteChangedFor(nameof(GetClosestMonkeyCommand))]
-    [NotifyCanExecuteChangedFor(nameof(GetMonkeysCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ClearMonkeysListCommand))]
+    [NotifyCanExecuteChangedFor(nameof(GetClosestMonkeyCommand), nameof(GetMonkeysCommand), nameof(ClearMonkeysListCommand))]
     private bool _isBusy;
 
+    // DO NOT SET THIS PROPERTY => Always set 'IsBusy' instead
     public bool IsNotBusy => !IsBusy;
 
     // Use for the "Refresh list" gesture. When 'true' shows a spinning circle.
@@ -39,9 +38,7 @@ public partial class MonkeysViewModel : BaseViewModel
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsCollectionViewEmpty))]
     [NotifyPropertyChangedFor(nameof(IsCollectionViewNotEmpty))]
-    [NotifyCanExecuteChangedFor(nameof(GetClosestMonkeyCommand))]
-    [NotifyCanExecuteChangedFor(nameof(GetMonkeysCommand))]
-    [NotifyCanExecuteChangedFor(nameof(ClearMonkeysListCommand))]
+    [NotifyCanExecuteChangedFor(nameof(GetClosestMonkeyCommand), nameof(GetMonkeysCommand), nameof(ClearMonkeysListCommand))]
     private ObservableCollection<Monkey> _monkeys = new();
 
     public bool IsCollectionViewEmpty => !Monkeys.Any();
@@ -56,39 +53,47 @@ public partial class MonkeysViewModel : BaseViewModel
     [RelayCommand(CanExecute = nameof(CanGetMonkeys))]
     async Task GetMonkeysAsync()
     {
-        if (IsBusy) return;
-
         try
         {
-            IsBusy = true;
+            if (!CanGetMonkeys) return;
 
-            // Check Internet Connectivity
-            if (_connectivity.NetworkAccess != NetworkAccess.Internet)
+            // Busy section - Calling the service
+            try
             {
-                await Shell.Current.DisplayAlert("Internet Issue",
-                    "No internet access. Check your connection and try again", "OK");
-                return;
+                IsBusy = true;
+
+                // Check Internet Connectivity
+                if (_connectivity.NetworkAccess != NetworkAccess.Internet)
+                {
+                    await Shell.Current.DisplayAlert("Internet Issue",
+                        "No internet access. Check your connection and try again", "OK");
+                    return;
+                }
+
+                var monkeysFromSvc = await _monkeyService.GetMonkeysAsync();
+
+                // New collection to trigger the bound properties
+                var newMonkeys = new ObservableCollection<Monkey>();
+                foreach (var monkey in monkeysFromSvc)
+                    newMonkeys.Add(monkey);
+                Monkeys = newMonkeys;
             }
-
-            var monkeysFromSvc = await _monkeyService.GetMonkeysAsync();
-
-            //if (Monkeys.Any())
-            //    Monkeys.Clear();
-            var newMonkeys = new ObservableCollection<Monkey>();
-            foreach (var monkey in monkeysFromSvc)
-                newMonkeys.Add(monkey);
-            Monkeys = newMonkeys;
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-            await Shell.Current.DisplayAlert("Error!", $"Unable to get monkeys: '{ex.Message}'", "OK");
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                await Shell.Current.DisplayAlert("Error!", $"Unable to get monkeys: '{ex.Message}'", "OK");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
         finally
         {
-            IsBusy = false;
+            // Reset the refresh
             IsRefreshing = false;
         }
+
     }
 
     #endregion
@@ -105,6 +110,8 @@ public partial class MonkeysViewModel : BaseViewModel
 
         try
         {
+            IsBusy = true;
+
             var location = await _geolocation.GetLastKnownLocationAsync();
             if (location is null)
             {
@@ -122,7 +129,7 @@ public partial class MonkeysViewModel : BaseViewModel
                 }
             }
 
-            var closest = Monkeys.OrderBy(m => 
+            var closest = Monkeys.OrderBy(m =>
                     location.CalculateDistance(m.Latitude, m.Longitude, DistanceUnits.Miles)).First();
 
             await Shell.Current.DisplayAlert("Closest Monkey",
@@ -132,6 +139,10 @@ public partial class MonkeysViewModel : BaseViewModel
         {
             Debug.WriteLine(ex);
             await Shell.Current.DisplayAlert("Error!", $"Unable to get closest monkey: '{ex.Message}'", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
         }
     }
 
@@ -149,8 +160,8 @@ public partial class MonkeysViewModel : BaseViewModel
         try
         {
             IsBusy = true;
-            if (Monkeys.Any())
-                Monkeys.Clear();
+            // New collection to trigger the bound properties
+            Monkeys = new ObservableCollection<Monkey>();
         }
         catch (Exception ex)
         {

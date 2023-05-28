@@ -6,12 +6,12 @@
              x:DataType="viewmodel:MonkeysViewModel"
              x:Class="MonkeyFinder.View.MainPage"
              Title="{Binding Title}">
-    <ContentPage.ToolbarItems>
+    <!--<ContentPage.ToolbarItems>
         <ToolbarItem Text="Clear"
                      Command="{Binding ClearMonkeysListCommand}"/>
         <ToolbarItem Text="Refresh"
                      Command="{Binding GetMonkeysCommand}"/>
-    </ContentPage.ToolbarItems>
+    </ContentPage.ToolbarItems>-->
     <Grid ColumnDefinitions="*,*,*" ColumnSpacing="5"
           RowDefinitions="*, Auto" RowSpacing="0" Padding="0">
         <RefreshView Grid.ColumnSpan="3"
@@ -21,16 +21,23 @@
                             ItemsSource="{Binding Monkeys}"
                             SelectionMode="None">
                 <CollectionView.EmptyView>
-                    <StackLayout VerticalOptions="Center"
+                    <VerticalStackLayout HorizontalOptions="Center"
+                                         VerticalOptions="Center">
+                        <Image Source="nodata.png"
+                               Aspect="AspectFit"/>
+                        <Label Text="Pull down to f refresh!"
+                               Style="{StaticResource MediumLabel}"
+                               HorizontalOptions="Center"
+                               Padding="20"/>
+                    </VerticalStackLayout>
+                    <!--<StackLayout VerticalOptions="Center"
                                  HorizontalOptions="Center"
                                  WidthRequest="200"
                                  HeightRequest="200">
-                        <Image Source="nodata.png"
-                               HorizontalOptions="Center"
-                               VerticalOptions="Center"
-                               Aspect="AspectFill"/>
-
-                    </StackLayout>
+                        <Label Text="Pull down to eerefresh!"
+                               Padding="10"
+                               VerticalOptions="End"/>
+                    </StackLayout>-->
                 </CollectionView.EmptyView>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="model:Monkey">
@@ -62,11 +69,11 @@
                 </CollectionView.ItemTemplate>
             </CollectionView>
         </RefreshView>
-        <Button Text="Get Monkeys"
-                Command="{Binding GetMonkeysCommand}"
-                Grid.Row="1" Grid.Column="0" Margin="8"/>
         <Button Text="Clear"
                 Command="{Binding ClearMonkeysListCommand}"
+                Grid.Row="1" Grid.Column="0" Margin="8"/>
+        <Button Text="Get Monkeys"
+                Command="{Binding GetMonkeysCommand}"
                 Grid.Row="1" Grid.Column="1" Margin="8"/>
         <Button Text="Find Closest"
                 Command="{Binding GetClosestMonkeyCommand}"
