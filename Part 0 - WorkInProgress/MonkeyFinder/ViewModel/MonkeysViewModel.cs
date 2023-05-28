@@ -4,10 +4,13 @@ namespace MonkeyFinder.ViewModel;
 
 public partial class MonkeysViewModel : BaseViewModel
 {
-    private readonly MonkeyService _monkeyService;
+    #region Services
 
+    private readonly MonkeyService _monkeyService;
     private readonly IConnectivity _connectivity;
     private readonly IGeolocation _geolocation;
+
+    #endregion
 
     public MonkeysViewModel(MonkeyService monkeyService,
         IConnectivity connectivity, IGeolocation geolocation)
@@ -18,13 +21,84 @@ public partial class MonkeysViewModel : BaseViewModel
         Title = "Monkey Finder";
     }
 
-    public ObservableCollection<Monkey> Monkeys { get; } = new();
+    #region Observable Properties
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsNotBusy))]
+    [NotifyCanExecuteChangedFor(nameof(GetClosestMonkeyCommand))]
+    [NotifyCanExecuteChangedFor(nameof(GetMonkeysCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ClearMonkeysListCommand))]
+    private bool _isBusy;
+
+    public bool IsNotBusy => !IsBusy;
+
+    // Use for the "Refresh list" gesture. When 'true' shows a spinning circle.
     [ObservableProperty]
     private bool _isRefreshing;
 
-    //[RelayCommand(CanExecute = nameof(CanGetClosestMonkey))]
-    [RelayCommand]
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCollectionViewEmpty))]
+    [NotifyPropertyChangedFor(nameof(IsCollectionViewNotEmpty))]
+    [NotifyCanExecuteChangedFor(nameof(GetClosestMonkeyCommand))]
+    [NotifyCanExecuteChangedFor(nameof(GetMonkeysCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ClearMonkeysListCommand))]
+    private ObservableCollection<Monkey> _monkeys = new();
+
+    public bool IsCollectionViewEmpty => !Monkeys.Any();
+
+    public bool IsCollectionViewNotEmpty => !IsCollectionViewEmpty;
+
+    #endregion
+
+    #region Command - Get Monkeys
+    private bool CanGetMonkeys => (IsNotBusy && IsCollectionViewEmpty);
+
+    [RelayCommand(CanExecute = nameof(CanGetMonkeys))]
+    async Task GetMonkeysAsync()
+    {
+        if (IsBusy) return;
+
+        try
+        {
+            IsBusy = true;
+
+            // Check Internet Connectivity
+            if (_connectivity.NetworkAccess != NetworkAccess.Internet)
+            {
+                await Shell.Current.DisplayAlert("Internet Issue",
+                    "No internet access. Check your connection and try again", "OK");
+                return;
+            }
+
+            var monkeysFromSvc = await _monkeyService.GetMonkeysAsync();
+
+            //if (Monkeys.Any())
+            //    Monkeys.Clear();
+            var newMonkeys = new ObservableCollection<Monkey>();
+            foreach (var monkey in monkeysFromSvc)
+                newMonkeys.Add(monkey);
+            Monkeys = newMonkeys;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            await Shell.Current.DisplayAlert("Error!", $"Unable to get monkeys: '{ex.Message}'", "OK");
+        }
+        finally
+        {
+            IsBusy = false;
+            IsRefreshing = false;
+        }
+    }
+
+    #endregion
+
+    #region Command - Get Closest Monkey
+
+    private bool CanGetClosestMonkey => (IsNotBusy && IsCollectionViewNotEmpty);
+
+    [RelayCommand(CanExecute = nameof(CanGetClosestMonkey))]
+    //[RelayCommand]
     async Task GetClosestMonkeyAsync()
     {
         if (!CanGetClosestMonkey) return;
@@ -61,58 +135,13 @@ public partial class MonkeysViewModel : BaseViewModel
         }
     }
 
-    private bool CanGetClosestMonkey => (IsNotBusy && Monkeys.Any());
+    #endregion
 
-    [RelayCommand]
-    async Task GoToDetailsAsync(Monkey monkey)
-    {
-        if (monkey is null) return;
+    #region Command - Clear Monkeys
 
-        await Shell.Current.GoToAsync($"{nameof(DetailsPage)}", true,
-            new Dictionary<string, object>
-            {
-                { nameof(Monkey), monkey}
-            });
-    }
+    private bool CanClearMonkeysList => (IsNotBusy && IsCollectionViewNotEmpty);
 
-    [RelayCommand]
-    async Task GetMonkeysAsync()
-    {
-        if (IsBusy) return;
-
-        try
-        {
-            IsBusy = true;
-            
-            // Check Internet Connectivity
-            if (_connectivity.NetworkAccess != NetworkAccess.Internet)
-            {
-                await Shell.Current.DisplayAlert("Internet Issue",
-                    "No internet access. Check your connection and try again", "OK");
-                return;
-            }
-
-            var monkeysFromSvc = await _monkeyService.GetMonkeysAsync();
-
-            if (Monkeys.Any())
-                Monkeys.Clear();
-
-            foreach (var monkey in monkeysFromSvc)
-                Monkeys.Add(monkey);
-        }
-        catch (Exception ex)
-        {
-            Debug.WriteLine(ex);
-            await Shell.Current.DisplayAlert("Error!", $"Unable to get monkeys: '{ex.Message}'", "OK");
-        }
-        finally
-        {
-            IsBusy = false;
-            IsRefreshing = false;
-        }
-    }
-
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanClearMonkeysList))]
     async Task ClearMonkeysListAsync()
     {
         if (IsBusy) return;
@@ -133,4 +162,22 @@ public partial class MonkeysViewModel : BaseViewModel
             IsBusy = false;
         }
     }
+
+    #endregion
+
+    #region Command - Go to Monkey Details page
+
+    [RelayCommand]
+    async Task GoToDetailsAsync(Monkey monkey)
+    {
+        if (monkey is null) return;
+
+        await Shell.Current.GoToAsync($"{nameof(DetailsPage)}", true,
+            new Dictionary<string, object>
+            {
+                { nameof(Monkey), monkey}
+            });
+    }
+
+    #endregion
 }

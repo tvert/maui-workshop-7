@@ -42,4 +42,8 @@
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="CommunityToolkit.Mvvm" Version="8.2.0" />
+	</ItemGroup>
 </Project>

@@ -12,9 +12,9 @@
         <ToolbarItem Text="Refresh"
                      Command="{Binding GetMonkeysCommand}"/>
     </ContentPage.ToolbarItems>
-    <Grid ColumnDefinitions="*,*" ColumnSpacing="5"
+    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="5"
           RowDefinitions="*, Auto" RowSpacing="0" Padding="0">
-        <RefreshView Grid.ColumnSpan="2"
+        <RefreshView Grid.ColumnSpan="3"
                      Command="{Binding GetMonkeysCommand}"
                      IsRefreshing="{Binding IsRefreshing}">
             <CollectionView BackgroundColor="Transparent"
@@ -64,17 +64,18 @@
         </RefreshView>
         <Button Text="Get Monkeys"
                 Command="{Binding GetMonkeysCommand}"
-                IsEnabled="{Binding IsNotBusy}"
-                Grid.Row="1" Margin="8"/>
+                Grid.Row="1" Grid.Column="0" Margin="8"/>
+        <Button Text="Clear"
+                Command="{Binding ClearMonkeysListCommand}"
+                Grid.Row="1" Grid.Column="1" Margin="8"/>
         <Button Text="Find Closest"
                 Command="{Binding GetClosestMonkeyCommand}"
-                IsEnabled="{Binding IsNotBusy}"
-                Grid.Row="1" Grid.Column="1" Margin="8"/>
+                Grid.Row="1" Grid.Column="2" Margin="8"/>
         <ActivityIndicator IsVisible="{Binding IsBusy}"
                            IsRunning="{Binding IsBusy}"
                            HorizontalOptions="FillAndExpand"
                            VerticalOptions="CenterAndExpand"
                            Grid.RowSpan="2"
-                           Grid.ColumnSpan="2"/>
+                           Grid.ColumnSpan="3"/>
     </Grid>
 </ContentPage>
