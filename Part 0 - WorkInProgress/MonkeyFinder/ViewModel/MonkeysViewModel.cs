@@ -55,6 +55,8 @@ public partial class MonkeysViewModel : BaseViewModel
     {
         try
         {
+            // Odd behavior with the 'RefreshView' => does not handle 'Command CanExecute correctly'.
+            // So need to reset the 'IsRefreshing' in the finally block.
             if (!CanGetMonkeys) return;
 
             // Busy section - Calling the service
@@ -90,6 +92,8 @@ public partial class MonkeysViewModel : BaseViewModel
         }
         finally
         {
+            // Odd behavior with the 'RefreshView' => does not handle 'Command CanExecute correctly'.
+            // (Same odd behavior for 'ToolBarItems')
             // Reset the refresh
             IsRefreshing = false;
         }
